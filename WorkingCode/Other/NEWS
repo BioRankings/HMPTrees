@@ -1,0 +1,44 @@
+CHANGES IN HMPTrees VERSION 1.5
+
+CHANGES
+
+* Changed the getMLEandLoglike function to return additional values and use weightCols instead of weight
+
+* Tidied up some code, comments and variable names
+
+CHANGES IN HMPTrees VERSION 1.4
+
+CHANGES
+
+* Changed buildTree to not set anything greater than 1 to 1
+
+* Added drop=FALSE to several functions to prevent single samples from crashing
+
+* Made pi base::pi so it wouldn't have conflict
+
+
+CHANGES IN HMPTrees VERSION 1.3
+
+CHANGES
+
+* Added a function to compare paired data sets
+
+
+
+CHANGES IN HMPTrees VERSION 1.2
+
+CHANGES
+
+* Changed every function to expect the taxa to be listed as the rownames, rather than the first column
+
+* Changed the parallel computing in the compareTwoDataSets functions to work on any OS and use the doParallel package
+
+* Changed the plotTreeDataMDS and mergeDataSets functions to accommodate any number of data sets
+
+* Added more functionality/options to the plotTreeDataMDS function
+
+* Changed the generateTree function 
+
+* Changed several functions to allow the use of splits besides a '.' in the taxa names
+
+

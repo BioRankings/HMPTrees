@@ -1,0 +1,5 @@
+exportPattern("^[[:alpha:]]+")
+importFrom("grDevices", "palette", "rainbow")
+importFrom("graphics", "layout", "legend", "par", "plot", "text")
+importFrom("stats", "cmdscale", "dist")
+importFrom("foreach", "%dopar%")

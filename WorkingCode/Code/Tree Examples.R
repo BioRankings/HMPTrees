@@ -3,144 +3,133 @@ source("Tree Functions.R")
 
 
 saliva <- read.csv("saliva.csv", row.names=1)
+stool <- read.csv("stool.csv", row.names=1)
+throat <- read.csv("throat.csv", row.names=1)
 
-##########################################################
-### generateTree
-##########################################################
-data(saliva)
+### ~~~~~~~~~~~~~~~~~~~~~
+### pvalue functions
+### ~~~~~~~~~~~~~~~~~~~~~
+compareTwoDataSets.Test <- function(){
+	data(saliva)
+	data(stool)
+	
+	### We use 1 for the number of permutations for computation time
+	### This value should be at least 1000 for an accurate result
+	numPerms <- 1
+	
+	pval <- compareTwoDataSets(saliva, stool, numPerms)
+	pval
+}
 
-gendata <- generateTree(saliva, 7000, 2)
+getMLEandLoglike.Test <- function(){
+	data(saliva)
+	
+	### We use 1 for the maximum number of steps for computation time
+	### This value should be much higher to ensure an accurate result
+	numSteps <- 1
+	
+	mle <- getMLEandLoglike(saliva, numSteps)$mleTree
+}
 
-##########################################################
-### checkTreeValidity
-##########################################################
-data(saliva) 
+pairedCompareTwoDataSets.Test <- function(){
+	data(saliva)
+	data(stool)
+	
+	### We use 1 for the number of permutations for computation time
+	### This value should be at least 1000 for an accurate result
+	numPerms <- 1
+	
+	pval <- pairedCompareTwoDataSets(saliva, stool, numPerms)
+	pval
+}
 
-validTree <- checkTreeValidity(saliva, 1)
-validTree
 
-##########################################################
-### compareTwoDataSets
-##########################################################
-data(saliva)
-data(stool)
 
-### We use 1 for the number of boot straps for computation time
-### This value should be at least 1000 for an accurate result
-numBootStraps <- 1
-pval <- compareTwoDataSets(saliva, stool, numBootStraps)
-pval
+### ~~~~~~~~~~~~~~~~~~~~~
+### transformation functions
+### ~~~~~~~~~~~~~~~~~~~~~
+trimToTaxaLevel.Test <- function(){
+	data(saliva)
+	
+	### Trims saliva to only have the class level
+	salivaClass <- trimToTaxaLevel(saliva, "class", TRUE)
+}
 
-##########################################################
-### createAndPlot
-##########################################################
-data(saliva)
+formatData.Test <- function(){
+	data(saliva)
+	
+	saliva2 <- formatData(saliva, 1000, 10000)
+}
 
-### Plots the trees in column 2 and 3 in 'Saliva'
-createAndPlot(saliva, c(2:3))
+mergeDataSets.Test <- function(){
+	data(saliva)
+	data(stool)
+	
+	dataComb <- mergeDataSets(list(saliva, stool))
+}
 
-##########################################################
-### createTrees
-##########################################################
-data(saliva)
 
-### Creates a object of type 'phylo' for the 4th tree in 'Saliva'
-salivaTree <- createTrees(saliva, 4)
 
-##########################################################
-### displayLegend
-##########################################################
-displayLegend(c("red", "orange", "blue"), c(.1, 100, 10000))
+### ~~~~~~~~~~~~~~~~~~~~~
+### plotting functions
+### ~~~~~~~~~~~~~~~~~~~~~
+plotTree.Test <- function(){
+	data(saliva)
+	
+	### Creates a tree for the 4th sample in 'Saliva' then plots it
+	salivaTree <- createTrees(saliva[,4, drop=FALSE])
+	plotTree(salivaTree, displayLegend=FALSE)
+}
 
-##########################################################
-### formatData
-##########################################################
-data(throat)
+plotTreeDataMDS.Test <- function(){
+	data(saliva)
+	data(stool)
+	
+	plotTreeDataMDS(list(Saliva=saliva, Stool=stool))
+}
 
-throat <- formatData(throat, 1000, 10000)
+createAndPlot.Test <- function(){
+	data(saliva)
+	
+	### Plots the trees in column 2 and 3 in 'Saliva'
+	createAndPlot(saliva[,2:3])
+}
 
-##########################################################
-### getMLEandLoglike
-##########################################################
-data(saliva)
+displayLegend.Test <- function(){
+	displayLegend(c("red", "orange", "blue"), c(.1, 100, 10000))
+}
 
-### We use 1 for the maximum number of steps for computation time
-### This value should be much higher to ensure an accurate result
-numSteps <- 1
-mle <- getMLEandLoglike(saliva, numSteps)$mleTree
 
-##########################################################
-### mergeDataSets
-##########################################################
-data(saliva)
-data(stool)
 
-dataComb <- mergeDataSets(list(saliva, stool), FALSE, TRUE)
+### ~~~~~~~~~~~~~~~~~~~~~
+### other functions
+### ~~~~~~~~~~~~~~~~~~~~~
+createTrees.Test <- function(){
+	data(saliva)
+	
+	### Creates a tree for the 4th sample in 'Saliva'
+	salivaTree <- createTrees(saliva[,4, drop=FALSE])
+}
 
-##########################################################
-### plotTree
-##########################################################
-data(saliva)
+checkTreeValidity.Test <- function(){
+	data(saliva) 
+	
+	validTree <- checkTreeValidity(saliva[,1, drop=FALSE])
+	validTree
+}
 
-### Creates a object of type 'phylo' for the 4th tree in 'Saliva'
-### Then plots it
-salivaTree <- createTrees(saliva, 4)
-plotTree(salivaTree, displayLegend=FALSE)
+generateTree.Test <- function(){
+	data(saliva)
+	
+	### Generate a the number of reads per sample
+	### The first number is the number of reads and the second is the number of subjects
+	nrs <- rep(10000, 2)
+	
+	gendata <- generateTree(saliva, nrs)
+}
 
-##########################################################
-### plotTreeDataMDS
-##########################################################
-data(saliva)
-data(stool)
 
-plotTreeDataMDS(list(saliva, stool), mleTitles=c("Saliva", "Stool"))
 
-##########################################################
-### transformHMPtoHMPTree
-##########################################################
-data(saliva)
-
-### Trims saliva to only contain the class level
-salivaClass <- trimToTaxaLevel(saliva, "class", TRUE)
-
-### This transforms the saliva data set but retains
-### any zero rows that may exist. 
-transSaliva <- transformHMPTreetoHMP(salivaClass, FALSE, 0)
-
-### saliva2 should be the same as salivaClass
-saliva2 <- transformHMPtoHMPTree(transSaliva)
-
-##########################################################
-### transformHMPTreetoHMP
-##########################################################
-data(saliva)
-
-### Trims saliva to only contain the class level
-salivaClass <- trimToTaxaLevel(saliva, "class", TRUE)
-
-### This transforms the saliva data set but retains
-### any zero rows that may exist. 
-transSaliva <- transformHMPTreetoHMP(salivaClass, FALSE, 0)
-
-##########################################################
-### trimToTaxaLevel
-##########################################################
-data(saliva)
-
-### Trims saliva to only have the class level
-salivaClass <- trimToTaxaLevel(saliva, "class", TRUE)
-
-##########################################################
-### pairedcompareTwoDataSets
-##########################################################
-data(saliva)
-data(stool)
-
-### We use 1 for the number of boot straps for computation time
-### This value should be at least 1000 for an accurate result
-numPerms <- 1
-pval <- compareTwoDataSets(saliva, stool, numPerms)
-pval
 
 
 

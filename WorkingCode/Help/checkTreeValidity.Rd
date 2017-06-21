@@ -6,11 +6,11 @@
 	are less than or equal to the value of that node.
 }
 
-\usage{checkTreeValidity(data, samples = 1, epsilon = 0.0001, split = ".")}
+\usage{checkTreeValidity(data, samples = NULL, epsilon = 0.0001, split = ".")}
 
 \arguments{
   \item{data}{A data frame in which each column contains the rdp read counts for every taxa given in the row names.}
-  \item{samples}{A numeric vector that is used to select a single (or several) tree(s) out of a data set. A value of 0 will select all trees.}
+  \item{samples}{Deprecated. Only send the columns in data to create.}
   \item{epsilon}{This value allows for rounding problems or other such small errors in the data such that the (parent + epsilon > sum(children)).}
   \item{split}{This is the character that separates the taxa levels in the row names.}
 }
@@ -22,6 +22,6 @@
 \examples{
 	data(saliva) 
 	
-	validTree <- checkTreeValidity(saliva, 1)
+	validTree <- checkTreeValidity(saliva[,1, drop=FALSE])
 	validTree
 }

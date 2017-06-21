@@ -8,6 +8,9 @@
 \alias{subsetData}
 \alias{traverseTree}
 \alias{traverseTreeHelp}
+\alias{transformHMPTreetoHMP}
+\alias{transformHMPtoHMPTree}
+
 
 \title{Internal Functions}
 \description{These files are only called from inside other functions and are therefore not documented here.}

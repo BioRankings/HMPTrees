@@ -13,7 +13,7 @@
 
 \arguments{
   \item{data}{A data frame in which each column contains the rdp read counts for every taxa given in the row names.}
-  \item{level}{The depth the tree will go down to (kingdom, phylum, class, order, family, genus, species, subspecies). Genus is the default.}
+  \item{level}{The depth the tree will go down to (kingdom, phylum, class, order, family, genus, species, subspecies).}
   \item{eliminateParentNodes}{
   		If 'TRUE' the data set returned will only contain rows at the level specified by 'myTaxaLevel'.
   		If 'FALSE' the data set returned will contain all the nodes up to the level specified by 'myTaxaLevel'.}

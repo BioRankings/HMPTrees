@@ -20,7 +20,7 @@
 \author{Patricio S. La Rosa, Elena Deych, Berkley Shands, William D. Shannon}
 
 \examples{
-	data(throat)
+	data(saliva)
 	
-	throat <- formatData(throat, 1000, 10000)
+	saliva2 <- formatData(saliva, 1000, 10000)
 }

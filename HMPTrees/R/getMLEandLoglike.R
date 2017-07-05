@@ -1,64 +1,87 @@
 getMLEandLoglike <-
-function(data, maxSteps=50, weight=NULL){
-if(missing(data))
-stop("A valid data set is required.")
-
-rowMatch <- function(A, B) { 
-f <- function(...) paste(..., sep=":") 
-if(!is.matrix(B)) 
-B <- matrix(B, 1, length(B)) 
-a <- do.call("f", as.data.frame(A)) 
-b <- do.call("f", as.data.frame(B)) 
-match(b, a, nomatch = 0) 
-} 
-
-taxa <- rownames(data)
-
-if(is.null(weight)){
-gStar <- apply(data, 1, mean)
-}else{
-gStar <- apply(data, 1, function(x){p=(x%*%weight)/sum(weight)})
-}
-
-while(rowMatch(t(data), t(gStar))[1] != 0) #make sure the mean isnt a point in our data set
-gStar <- gStar + 0.01
-
-ret <- data.frame(matrix(0, nrow=maxSteps, ncol=2))
-names(ret) <- c("f", "deltaf")
-calc.f <- sum(apply(data, 2, function(x,gstart){sqrt(sum((x-gstart)^2))}, gstart=gStar))
-delta.f <- 1
-count <- 0
-
-while((count < maxSteps) && (delta.f > 10^(-6))){ 
-count <- count+1
-ret[count,] <- c(calc.f, delta.f)
-if(is.null(weight)){
-gStar <- rowSums(apply(data, 2, function(x, gstart){x/sqrt(sum((x-gstart)^2))}, gstart=gStar))/sum(apply(data, 2, function(x,gstart){1/sqrt(sum((x-gstart)^2))}, gstart=gStar))
-calc.f <- sum(apply(data, 2, function(x, gstart){sqrt(sum((x-gstart)^2))}, gstart=gStar))
-}else{
-gStar <- (apply(data, 2, function(x, gstart){x/sqrt(sum((x-gstart)^2))}, gstart=gStar)%*%weight)/as.vector(apply(data, 2, function(x,gstart){1/sqrt(sum((x-gstart)^2))}, gstart=gStar)%*%weight)
-calc.f <- as.vector(apply(data, 2, function(x, gstart){sqrt(sum((x-gstart)^2))}, gstart=gStar)%*%weight)
-}
-delta.f <- abs(ret[count,1]-calc.f)
-}
-
-N <- ncol(data)
-p <- nrow(data)
-if(is.null(weight)){
-tau <- N/calc.f
-}else{
-tau <- sum(weight)/calc.f
-}
-
-gStar <- as.data.frame(gStar)
-
-if(is.null(weight)){
-logLik <- N*(lgamma(p/2)-lgamma(p)+log(tau)-p*log(2)-p/2*log(pi))-tau*calc.f
-}else{
-logLik <- sum(weight)*(lgamma(p/2)-lgamma(p)+log(tau)-p*log(2)-p/2*log(pi))-tau*calc.f
-}
-
-mle.fit <- list(count, logLik, tau, gStar)
-names(mle.fit) <- c("iters", "Loglik", "tau", "mleTree")
-return(mle.fit)
+function(data, maxSteps=50, weightCols=NULL, delta=10^(-6), weight=NULL){
+	if(missing(data))
+		stop("A valid data set is required.")
+	
+	### Fix for anyone using the old weighting argument
+	if(!is.null(weight)){
+		warning("'weight' is deprecated. It has been replaced with weightCols. View the help files for details.")
+		weightCols <- weight
+	}
+	
+	numSubs <- ncol(data)
+	numEdges <- nrow(data)
+	
+	### If subject weighting we need to redefine numSubs
+	if(!is.null(weightCols)) 
+		numSubs <- sum(weightCols)
+	
+	### Work around for adding mse into applys
+	dataTemp <- as.data.frame(data)
+	
+	### Generate inital g* from mean
+	if(is.null(weightCols)){ 	# No weighting
+		gstar <- rowSums(data)/ncol(data)
+	}else{ 						# Subject weighting
+		gstar <- apply(data, 1, function(x){
+					(x%*%weightCols)/sum(weightCols)
+				})
+	}
+	
+	### Storage matrix for outputs
+	fvals <- matrix(0, maxSteps+1, 4)
+	colnames(fvals) <- c("f", "deltaf", "tau", "LL")
+	
+	### Set up starting points for our searching
+	# f - Sum of squares of each observed connectome to g*
+	calcf <- sum(apply(data, 2, function(x, gs) {sqrt(sum((x - gs)^2))}, gs=gstar))
+	deltaf <- 1
+	tau <- numSubs/calcf
+	logLikBase <- lgamma(numEdges/2) - lgamma(numEdges) - numEdges*log(2) - numEdges/2*log(base::pi)
+	logLik <- numSubs*(logLikBase + log(tau)) - numSubs	
+	
+	### Search for the best gstar
+	count <- 1
+	fvals[count,] <- c(calcf, deltaf, tau, logLik)
+	while((count < maxSteps) && (deltaf > delta)){ 
+		### Get an updated distance to every graph from the g*
+		mse <- apply(data, 2, function(x, gs) {sqrt(sum((x - gs)^2))}, gs=gstar)
+		dataTemp[nrow(data)+1,] <- mse
+		
+		### Get the num and den for g* calculation
+		tempMSE <- matrix(rep(mse, nrow(data)), nrow(data), byrow=TRUE)
+		numBase <- data[,mse!=0]/tempMSE[,mse!=0]
+		denBase <- 1/mse[mse!=0]
+		if(is.null(weightCols)){	# No weighting
+			num <- rowSums(numBase) 
+			den <- sum(denBase)
+		}else{ 						# Subject weighting
+			num <- numBase %*% weightCols
+			den <- as.vector(denBase %*% weightCols)
+		}
+		
+		### Update g* and calcf
+		gstar <- num/den
+		calcfBase <- apply(data, 2, function(x, gs) {sqrt(sum((x - gs)^2))}, gs=gstar)
+		if(is.null(weightCols)){	# No weighting
+			calcf <- sum(calcfBase)
+		}else{ 						# Subject weighting
+			calcf <- as.vector(calcfBase %*% weightCols)
+		}
+		
+		### Recalc new stat values
+		deltaf <- abs(fvals[count, 1] - calcf)
+		tau <- numSubs/calcf
+		logLik <- numSubs*(logLikBase + log(tau)) - numSubs	
+		
+		### Save our values
+		count <- count + 1
+		fvals[count,] <- c(calcf, deltaf, tau, logLik)
+	}
+	
+	### Trim our return stat values file before returning
+	fvals <- fvals[1:count,]
+	
+	ret <- list(iters=count, Loglik=logLik, tau=tau, mleTree=as.data.frame(gstar), fvals=fvals)
+	return(ret)
 }

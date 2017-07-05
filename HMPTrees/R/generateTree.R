@@ -1,28 +1,29 @@
 generateTree <-
-function(data, nreads=10000, nsamps=50, theta=0, level="genus", split="."){
-if(missing(data))
-stop("A valid data set is required.")
-if(nreads <= 0)
-stop("'nreads' must be positive and greater than 0.")
-if(nsamps <= 0)
-stop("'nsamps' must be positive and greater than 0.")
-
-tempdata <- trimToTaxaLevel(data, level, FALSE, split=split)
-tempdata <- transformHMPTreetoHMP(tempdata, TRUE)
-
-if(theta > 0 && theta < 1){
-dirfit <- dirmult::dirmult(tempdata) 
-dirgamma <- dirfit$pi * ((1 - theta)/theta)
-}else{
-dirfit <- HMP::DM.MoM(tempdata)
-dirgamma <- dirfit$gamma
-}
-
-gendata <- HMP::Dirichlet.multinomial(rep(nreads, nsamps), dirgamma)
-colnames(gendata) <- colnames(tempdata)
-gendata <- transformHMPtoHMPTree(gendata)
-
-gendata <- buildTree(gendata, level, split)
-
-return(gendata)
+function(data, numReadsPerSamp, theta=NULL, level="genus", split="."){
+	if(missing(data) || missing(numReadsPerSamp))
+		stop("data and/or numReadsPerSamp missing.")
+	
+	### Take a full tree and pull out a single level
+	tempdata <- trimToTaxaLevel(data, level, FALSE, split=split)
+	tempdata <- transformHMPTreetoHMP(tempdata, TRUE)
+	
+	### Get our starting shape
+	dirfit <- dirmult::dirmult(tempdata)
+	if(is.null(theta)){
+		dirgamma <- dirfit$gamma
+	}else{
+		dirgamma <- dirfit$pi * ((1 - theta)/theta)
+	}
+	
+	### Generate the data using HMP
+	gendata <- HMP::Dirichlet.multinomial(numReadsPerSamp, dirgamma)
+	colnames(gendata) <- colnames(tempdata)
+	
+	### Rotate back into HMPTree format
+	gendata <- as.data.frame(t(gendata))
+	
+	### Build a full tree back out
+	gendata <- buildTree(gendata, split)
+	
+	return(gendata)
 }

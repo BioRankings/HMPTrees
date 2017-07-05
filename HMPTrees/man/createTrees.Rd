@@ -3,12 +3,13 @@
 \title{Create a Tree Object}
 \description{This function creates a list tree objects of type 'phylo' for use in plotting the trees.}
 
-\usage{createTrees(data, samples = 1, level = "genus")}
+\usage{createTrees(data, samples = NULL, level = "genus", split = ".")}
 
 \arguments{
   \item{data}{A data frame in which each column contains the rdp read counts for every taxa given in the row names.}
-  \item{samples}{A numeric vector that is used to select a single (or several) tree(s) out of a data set. A value of 0 will select all trees.}
-  \item{level}{The depth the tree creation will go down to (kingdom, phylum, class, order, family, genus, species, subspecies). 'genus' is the default.}
+  \item{samples}{Deprecated. Only send the columns in data to create.}
+  \item{level}{The depth the tree creation will go down to (kingdom, phylum, class, order, family, genus, species, subspecies).}
+  \item{split}{This is the character that separates the taxa levels in the row names.}
 }
 
 \details{
@@ -23,5 +24,6 @@
 \examples{
 	data(saliva)
 	
-	mySalivaTree <- createTrees(saliva, 4)
+	### Creates a tree for the 4th sample in 'Saliva'
+	salivaTree <- createTrees(saliva[,4, drop=FALSE])
 }

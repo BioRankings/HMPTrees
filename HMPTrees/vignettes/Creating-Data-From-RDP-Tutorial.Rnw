@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Creating Data From RDP Tutorial}
+%\VignetteIndexEntry{Categorical FDA Tutorial}
 \documentclass[a4paper]{article}
 
 \title{Guide to Turning an RDP File into a Data Set}
@@ -87,8 +87,8 @@ Bacteria.Firmicutes.Bacilli.Lactobacillales.Streptococcaceae, 0, 5\\*
 
 \textbf{Notes:}
 \begin{itemize}
-\item Any symbol can be used as a taxa level seperator except colons.
-\item There can only be one top level node, if we were looking at Archaea too we would need to keep the Root level in.
+  \item Any symbol can be used as a taxa level seperator except colons.
+  \item There can only be one top level node, if we were looking at Archaea too we would need to keep the Root level in.
 \end{itemize}
 
 \end{document}

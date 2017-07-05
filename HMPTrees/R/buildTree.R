@@ -1,30 +1,32 @@
 buildTree <-
-function(data, level="genus", split="."){
-if(missing(data))
-stop("A valid data set is required.")
-
-names <- rownames(data)
-nameSplit <- strsplit(as.character(names), split,  fixed=TRUE)
-
-retData <- data
-
-for(lvl in 1:(getTaxaDepth(level)-1)){
-newData <- data.frame()
-for(i in 1:length(nameSplit)){ 
-name <- paste(nameSplit[[i]][1:lvl], collapse=split)
-if(is.element(name, rownames(newData))){
-loc <- grep(name, rownames(newData), fixed=TRUE)
-newData[loc,] <- newData[loc,] + data[i,]
-}else{
-newData <- rbind(data[i,], newData)
-rownames(newData)[1] <- name
-}
-}
-retData <- rbind(retData, newData)
-}
-
-retData <- ifelse(retData>=1, 1, 0)
-retData <- retData[order(rownames(retData)),]
-
-return(retData)
+function(data, split="."){
+	### Make a copy to attach our new levels too
+	retData <- data
+	
+	### Go through every taxa
+	for(i in 1:nrow(data)){ 
+		fullNameSplit <- strsplit(rownames(data)[i], split, fixed=TRUE)[[1]]
+		
+		### Skip top level taxa
+		if(length(fullNameSplit) == 1)
+			next
+		
+		### Build a full branch from the name
+		for(j in 1:(length(fullNameSplit)-1)){
+			name <- paste(fullNameSplit[1:j], collapse=split)
+			
+			if(name %in% rownames(retData)){
+				loc <- which(rownames(retData) %in% name)
+				retData[loc,] <- retData[loc,] + data[i,]
+			}else{
+				retData <- rbind(temp=unlist(data[i,]), retData)
+				rownames(retData)[1] <- name
+			}
+		}
+	}
+	
+	### Reorder the taxa names
+	retData <- retData[order(rownames(retData)),]
+	
+	return(retData)
 }

@@ -4,23 +4,25 @@
 \description{This function combines the createTrees and plotTree functions to create and plot a set of trees.}
 
 \usage{
-	createAndPlot(data, samples = 1, level = "genus", colors, divisions, main, 
-		sub, showTipLabel = TRUE, showNodeLabel = FALSE, displayLegend = TRUE, 
-		onePerPage = FALSE)
+	createAndPlot(data, samples = NULL, level = "genus", colors = NULL, 
+		divisions = NULL, main = NULL, sub = "", showTipLabel = TRUE, 
+		showNodeLabel = FALSE, displayLegend = TRUE, onePerPage = FALSE, 
+		split = ".")
 }
 
 \arguments{
   \item{data}{A data frame in which each column contains the rdp read counts for every taxa given in the row names.}
-  \item{samples}{A numeric vector that is used to select a single (or several) tree(s) out of a data set. A value of 0 will select all trees.}
-  \item{level}{The depth the tree creation will go down to (kingdom, phylum, class, order, family, genus, species, subspecies). 'genus' is the default.}
+  \item{samples}{Deprecated. Only send the columns in data to plot.}
+  \item{level}{The depth the tree creation will go down to (kingdom, phylum, class, order, family, genus, species, subspecies).}
   \item{colors}{A vector of colors to be applied to the branches in the plot.}
   \item{divisions}{A vector of numbers to be used as break points to assign different colors.}
-  \item{main}{A custom title(s) for the plot(s).  The default value is the column names.}
+  \item{main}{A custom title(s) for the plot(s).}
   \item{sub}{A custom subtitle for the plot.}
   \item{showTipLabel}{Hides the tip labels if 'FALSE' otherwise it shows all non-zero tip labels.}
   \item{showNodeLabel}{Hides the interior node labels if 'FALSE' otherwise it shows all non-zero node labels.}
   \item{displayLegend}{Enables the display of a legend of the branch colors and divisions when 'TRUE'.}
   \item{onePerPage}{If 'TRUE' one tree will be plotted per page, if 'FALSE' four will be displayed per page.}
+  \item{split}{This is the character that separates the taxa levels in the row names.}
 }
 
 \details{
@@ -41,5 +43,5 @@
 	data(saliva)
 	
 	### Plots the trees in column 2 and 3 in 'Saliva'
-	createAndPlot(saliva, c(2:3))
+	createAndPlot(saliva[,2:3])
 }

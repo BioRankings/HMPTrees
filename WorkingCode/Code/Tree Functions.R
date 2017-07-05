@@ -17,10 +17,14 @@ compareTwoDataSets <- function(data1, data2, numPerms=1000, parallel=FALSE, core
 		stop("Two valid data sets are required.")
 	
 	### Fix any old arguments
-	if(!is.null(numBootStraps))
+	if(!is.null(numBootStraps)){
+		warning("'numBootStraps' is deprecated. It has been replaced with numPerms. View the help files for details.")
 		numPerms <- numBootStraps
-	if(!is.null(enableMC))
+	}
+	if(!is.null(enableMC)){
+		warning("'enableMC' is deprecated. It has been replaced with parallel. View the help files for details.")
 		parallel <- enableMC
+	}
 	
 	if(numPerms <= 0)
 		stop("The number of boostraps must be an integer greater than 0.")
@@ -70,8 +74,7 @@ compareTwoDataSets <- function(data1, data2, numPerms=1000, parallel=FALSE, core
 						return(LRT)
 					}
 				}, finally = {
-					# Close the parallel connections
-					parallel::stopCluster(cl)
+					parallel::stopCluster(cl) # Close the parallel connections
 				}
 		)
 	}else{ 	
@@ -98,8 +101,10 @@ getMLEandLoglike <- function(data, maxSteps=50, weightCols=NULL, delta=10^(-6), 
 		stop("A valid data set is required.")
 	
 	### Fix for anyone using the old weighting argument
-	if(is.null(weightCols) && !is.null(weight))
+	if(!is.null(weight)){
+		warning("'weight' is deprecated. It has been replaced with weightCols. View the help files for details.")
 		weightCols <- weight
+	}
 	
 	numSubs <- ncol(data)
 	numEdges <- nrow(data)
@@ -222,9 +227,8 @@ pairedCompareTwoDataSets  <- function(data1, data2, numPerms=1000, parallel=FALS
 						gstar2 <- getMLEandLoglike(dataComb[,-samps], maxSteps, delta=delta)$mleTree
 						return(sqrt(sum((gstar1-gstar2)^2)))
 					}	
-				}, finally = {
-					# Close the parallel connections
-					parallel::stopCluster(cl)
+				}, finally = {				
+					parallel::stopCluster(cl) # Close the parallel connections
 				}
 		)
 	}else{
@@ -302,8 +306,10 @@ formatData <- function(data, countThreshold=1000, normalizeThreshold=10000){
 
 mergeDataSets <- function(dataList, calcMLE=FALSE, uniqueNames=FALSE, data=NULL){
 	### Fix any old arguments
-	if(!is.null(data))
+	if(!is.null(data)){
+		warning("'data' is deprecated. It has been replaced with dataList. View the help files for details.")
 		dataList <- data
+	}
 	
 	if(missing(dataList))
 		stop("dataList is missing.")
@@ -353,8 +359,10 @@ mergeDataSets <- function(dataList, calcMLE=FALSE, uniqueNames=FALSE, data=NULL)
 ### ~~~~~~~~~~~~~~~~~~~~~
 plotTree <- function(treeList, colors=NULL, divisions=NULL, main=NULL, sub="", showTipLabel=TRUE, showNodeLabel=FALSE, displayLegend=TRUE, trees=NULL){
 	### Fix any old arguments
-	if(!is.null(trees))
+	if(!is.null(trees)){
+		warning("'trees' is deprecated. It has been replaced with treeList. View the help files for details.")
 		treeList <- trees
+	}
 	
 	if(missing(treeList))
 		stop("At least one valid tree of type 'phylo' is required inside a list.")
@@ -388,8 +396,10 @@ plotTree <- function(treeList, colors=NULL, divisions=NULL, main=NULL, sub="", s
 plotTreeDataMDS <- function(dataList, main="Tree MDS Comparisons", calcMLE=TRUE, mleTitles=NULL, dotColors=NULL, 
 		dotSizes=NULL, showNames=FALSE, returnCoords=FALSE, data=NULL){
 	### Fix any old arguments
-	if(!is.null(data))
+	if(!is.null(data)){
+		warning("'data' is deprecated. It has been replaced with dataList. View the help files for details.")
 		dataList <- data
+	}
 	
 	if(missing(dataList))
 		stop("At least 1 valid data set is required.")
@@ -496,7 +506,7 @@ displayLegend <- function(colors=NULL, divisions=NULL, title="Confidence Value")
 		lgd <- c(lgd, paste(divisions[num], "-", divisions[num-1], sep=""))
 	
 	### Plot the legend on a new page
-	palette(colors)
+	grDevices::palette(colors)
 	plot(0, 0, type="n", xlab="", ylab="", xaxt="n", yaxt="n", bty="n")
 	legend(-.75, .75, legend=lgd, col=rev(palette()), pch=19, title=title)
 }

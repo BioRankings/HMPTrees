@@ -3,12 +3,12 @@
 \title{Displays Tree Plot Legend}
 \description{This function displays a legend that shows the tree branch sizes/colors divisions.}
 
-\usage{displayLegend(colors, divisions, title = "Confidence Value")}
+\usage{displayLegend(colors = NULL, divisions = NULL, title = "Confidence Value")}
 
 \arguments{
   \item{colors}{A vector of colors to be used in the plot from lowest ranking to highest ranking.}
   \item{divisions}{A vector of numbers from lowest to highest to separate the tree branches into the color ranking.}
-  \item{title}{The title for the legend.  The default is 'Confidence Value'.}
+  \item{title}{The title for the legend.}
 }
 
 \details{

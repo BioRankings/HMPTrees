@@ -1,31 +1,30 @@
 traverseTree <-
-function(data, level="genus", split="."){
-if(missing(data))
-stop("A valid data set is required.")
-
-if(any(grepl(")", rownames(data), fixed=TRUE)) || any(grepl("(", rownames(data), fixed=TRUE)) || any(grepl(":", rownames(data), fixed=TRUE)))
-stop("Using parentheses and/or colons in the taxa names is not allowed.")
-
-myStr <- ""
-splitLength <- unlist(lapply(strsplit(rownames(data), split, fixed=TRUE), length))
-startPlace <- which(splitLength == 1)
-maxTaxaDepth <- getTaxaDepth(level)
-
-for(i in startPlace){ 
-tempStr <- traverseTreeHelp(data[, 1, drop=FALSE], i, 1, maxTaxaDepth, split)
-if(tempStr == "") 
-next 
-if(myStr != ""){
-myStr <- paste(myStr, ",", tempStr, sep="")
-}else{
-myStr <- tempStr
-}
-}
-
-myTree <- paste("", myStr, ";", sep="")
-
-retTree <- ape::read.tree(text=myTree) #turns the newick format into a tree
-retTree <- ape::collapse.singles(retTree)
-
-return(retTree)
+function(data, level, split){	
+	maxTaxaDepth <- getTaxaDepth(level)
+	
+	### Pull apart our starting name
+	splitLength <- unlist(lapply(strsplit(rownames(data), split, fixed=TRUE), length))
+	startPlace <- which(splitLength == 1)
+	
+	### Go through every starting branch
+	myStr <- ""
+	for(i in startPlace){ 	
+		tempStr <- traverseTreeHelp(data[, 1, drop=FALSE], i, 1, maxTaxaDepth, split)
+		if(tempStr == "") 
+			next 
+		
+		if(myStr != ""){
+			myStr <- paste(myStr, ",", tempStr, sep="")
+		}else{
+			myStr <- tempStr
+		}
+	}
+	### Add the final newick touches to the string
+	myTree <- paste("", myStr, ";", sep="")
+	
+	### Turn the newick format into a 'phylo' tree
+	retTree <- ape::read.tree(text=myTree) 
+	retTree <- ape::collapse.singles(retTree)
+	
+	return(retTree)
 }

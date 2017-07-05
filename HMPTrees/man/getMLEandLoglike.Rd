@@ -3,12 +3,14 @@
 \title{Get MLE and Log Likelihood of a Data Set}
 \description{This function takes a data set and computes the MLE and its Log-Likelihood value.}
 
-\usage{getMLEandLoglike(data, maxSteps = 50, weight = NULL)}
+\usage{getMLEandLoglike(data, maxSteps = 50, weightCols = NULL, delta = 10^(-6), weight = NULL)}
 
 \arguments{
   \item{data}{A data frame in which each column contains the rdp read counts for every taxa given in the row names.}
-  \item{maxSteps}{The maximum number of times to bootstrap for the MLE.}
-  \item{weight}{A vector to weight the MLE tree.}
+  \item{maxSteps}{The maximum number of times to iterate though for the MLE.}
+  \item{weightCols}{A vector of weights for the subjects.}
+  \item{delta}{The minimum threshold of change in f to stop the search for the MLE.}
+  \item{weight}{Deprecated, use weightCols instead}
 }
 
 \details{
@@ -22,7 +24,7 @@
 	\eqn{(g^{*},\tau)}, we use the maximum likelihood estimate (MLE) procedure described in La Rosa et al. (see reference 2)
 }
 
-\value{A list containing the MLE, log-likelihood, and tau.}
+\value{A list containing the MLE, log-likelihood, tau, the number of iterations it took to run, and some intermediate values}
 
 \author{Patricio S. La Rosa, Elena Deych, Berkley Shands, William D. Shannon}
 
@@ -32,5 +34,6 @@
 	### We use 1 for the maximum number of steps for computation time
 	### This value should be much higher to ensure an accurate result
 	numSteps <- 1
+	
 	mle <- getMLEandLoglike(saliva, numSteps)$mleTree
 }

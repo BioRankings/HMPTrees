@@ -19,8 +19,6 @@
 
 \value{A single data set containing all the data from the input data sets, in addition to their individual MLEs and a combined MLE if requested.}
 
-\author{Berkley Shands, Patricio S. La Rosa, Elena Deych, William D. Shannon}
-
 \examples{
 	data(saliva)
 	data(stool)

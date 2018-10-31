@@ -33,8 +33,6 @@
 
 \value{A plot of the tree(s).}
 
-\author{Berkley Shands, Patricio S. La Rosa, Elena Deych, William D. Shannon}
-
 \examples{
 	data(saliva)
 	

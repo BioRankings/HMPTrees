@@ -113,9 +113,6 @@ getMLEandLoglike <- function(data, maxSteps=50, weightCols=NULL, delta=10^(-6), 
 	if(!is.null(weightCols)) 
 		numSubs <- sum(weightCols)
 	
-	### Work around for adding mse into applys
-	dataTemp <- as.data.frame(data)
-	
 	### Generate inital g* from mean
 	if(is.null(weightCols)){ 	# No weighting
 		gstar <- rowSums(data)/ncol(data)
@@ -131,7 +128,8 @@ getMLEandLoglike <- function(data, maxSteps=50, weightCols=NULL, delta=10^(-6), 
 	
 	### Set up starting points for our searching
 	# f - Sum of squares of each observed connectome to g*
-	calcf <- sum(apply(data, 2, function(x, gs) {sqrt(sum((x - gs)^2))}, gs=gstar))
+	calcfBase <- sqrt(colSums((data-gstar)^2))
+	calcf <- sum(calcfBase)
 	deltaf <- 1
 	tau <- numSubs/calcf
 	logLikBase <- lgamma(numEdges/2) - lgamma(numEdges) - numEdges*log(2) - numEdges/2*log(base::pi)
@@ -142,8 +140,7 @@ getMLEandLoglike <- function(data, maxSteps=50, weightCols=NULL, delta=10^(-6), 
 	fvals[count,] <- c(calcf, deltaf, tau, logLik)
 	while((count < maxSteps) && (deltaf > delta)){ 
 		### Get an updated distance to every graph from the g*
-		mse <- apply(data, 2, function(x, gs) {sqrt(sum((x - gs)^2))}, gs=gstar)
-		dataTemp[nrow(data)+1,] <- mse
+		mse <- calcfBase
 		
 		### Get the num and den for g* calculation
 		tempMSE <- matrix(rep(mse, nrow(data)), nrow(data), byrow=TRUE)
@@ -159,7 +156,7 @@ getMLEandLoglike <- function(data, maxSteps=50, weightCols=NULL, delta=10^(-6), 
 		
 		### Update g* and calcf
 		gstar <- num/den
-		calcfBase <- apply(data, 2, function(x, gs) {sqrt(sum((x - gs)^2))}, gs=gstar)
+		calcfBase <- sqrt(colSums((data-gstar)^2))
 		if(is.null(weightCols)){	# No weighting
 			calcf <- sum(calcfBase)
 		}else{ 						# Subject weighting
@@ -254,30 +251,78 @@ pairedCompareTwoDataSets  <- function(data1, data2, numPerms=1000, parallel=FALS
 ### ~~~~~~~~~~~~~~~~~~~~~
 ### transformation functions
 ### ~~~~~~~~~~~~~~~~~~~~~
-trimToTaxaLevel <- function(data, level="genus", eliminateParentNodes=FALSE, trimBelow=NULL, split="."){
+trimToTaxaLevel <- function(data, level="genus", trimNodes="all", trimNames=TRUE, split="."){
 	if(missing(data))
 		stop("A valid data set is required.")
 	
+	# Check for old function use
+	if(is.logical(trimNodes) || exists(eliminateParentNodes) || exists(trimBelow))
+		stop("trimToTaxaLevel has changed please see ?trimToTaxaLevel for details.")
+	
+	# Get depth
 	maxLevel <- getTaxaDepth(level)
 	
-	nameSplit <- strsplit(as.character(rownames(data)), split, fixed=TRUE)
-	lowerLevels <- NULL
-	for(l in 1:nrow(data)){ 
-		if(length(nameSplit[[l]]) == maxLevel){
-			lowerLevels <- c(lowerLevels, l)
-			if(eliminateParentNodes && is.null(trimBelow))
-				rownames(data)[l] <- nameSplit[[l]][maxLevel]
-		}else if(!is.null(trimBelow) && is.logical(trimBelow)){
-			if(length(nameSplit[[l]]) < maxLevel && trimBelow){
-				lowerLevels <- c(lowerLevels, l)
-			}else if(length(nameSplit[[l]]) > maxLevel && !trimBelow){
-				lowerLevels <- c(lowerLevels, l)
-			}
-		}
+	# Pull out row names
+	rNames <- rownames(data)
+	rownames(data) <- 1:nrow(data)
+	nameSplit <- strsplit(rNames, split, fixed=TRUE)
+	nameLength <- sapply(nameSplit, length)
+	
+	# Check we will still have data
+	if(maxLevel > max(nameLength))
+		stop("maxLevel is greater than the number of levels.")
+	
+	# Find the rows we want based on depth
+	if(trimNodes == tolower("all")){
+		sel <- nameLength == maxLevel
+	}else if(trimNodes == tolower("above")){
+		sel <- nameLength >= maxLevel
+	}else if(trimNodes == tolower("below")){
+		sel <- nameLength <= maxLevel
+	}else{
+		stop("trimNodes must be 'all', 'above', or 'below'.")
 	}
 	
-	data <- data[lowerLevels,, drop=FALSE]
-	return(data)
+	# Pull out the rows
+	dataTemp <- data[sel,, drop=FALSE]
+	
+	# Return early if we are only trimming lower levels
+	if(trimNodes == tolower("below") || (trimNodes == tolower("all") && !trimNames)){
+		rownames(dataTemp) <- rNames[sel]
+		return(dataTemp)
+	}
+	
+	# Pull out row names again
+	rNamesTemp <- rNames[sel]
+	nameSplit <- stringr::str_split_fixed(rNamesTemp, stringr::fixed(split), maxLevel)
+	
+	# Check for duplicates and fix them
+	dups <- duplicated(nameSplit[,maxLevel])
+	dupCount <- 1
+	if(any(dups))
+		warning("Duplicated names detected and fixed.")
+	while(any(dups)){
+		# Find duplicated taxa
+		dupTaxa <- unique(nameSplit[dups, maxLevel])
+		
+		# Go through each duplicated taxa
+		for(t in dupTaxa){
+			loc <- which(nameSplit[,maxLevel] == t)
+			
+			# Go through each duplicated row
+			for(i in 1:length(loc))
+				nameSplit[loc[i], maxLevel] <- paste(nameSplit[loc[i], maxLevel-dupCount], nameSplit[loc[i], maxLevel], sep="-")
+		}
+		
+		# Ready for next loop
+		dupCount <- dupCount + 1
+		dups <- duplicated(nameSplit[,maxLevel])
+	}
+	
+	# Add rownames back to data
+	rownames(dataTemp) <- nameSplit[,maxLevel]
+	
+	return(dataTemp)
 }
 
 formatData <- function(data, countThreshold=1000, normalizeThreshold=10000){
@@ -805,7 +850,7 @@ getBranchSizes <- function(edgeLength, colors, divisions){
 	return(retData)
 }
 
-getTaxaDepth <- function(level){	
+getTaxaDepth <- function(level){
 	if(tolower(level) == "kingdom" || tolower(level) == "k"){
 		return(1)
 	}else if(tolower(level) == "phylum" || tolower(level) == "p"){
@@ -822,15 +867,19 @@ getTaxaDepth <- function(level){
 		return(7)
 	}else if(tolower(level) == "subspecies" || tolower(level) == "ss"){
 		return(8)
+	}else if(tolower(level) == "variety" || tolower(level) == "v"){
+		return(9)
+	}else if(tolower(level) == "form" || tolower(level) == "fm"){
+		return(10)
 	}else{
 		if(is.na(suppressWarnings(as.numeric(level))))
 			stop(sprintf("%s isn't recognized.", as.character(level)))
 		
 		lvl <- as.numeric(level)
-		if(lvl > 0)
-			return(lvl)
+		if(lvl <= 0)
+			stop("'level' must be a positive integer.")
 		
-		stop("'level' cannot be negative.")
+		return(lvl)
 	}
 }
 
@@ -871,6 +920,7 @@ subsetData <- function(data, site, region){
 	
 	return(data)
 }
+
 
 
 ### ~~~~~~~~~~~~~~~~~~~~~

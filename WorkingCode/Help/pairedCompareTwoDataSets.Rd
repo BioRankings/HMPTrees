@@ -26,8 +26,6 @@
 
 \value{A p-value for the similarity of the two data sets based on the permutation test.}
 
-\author{Patricio S. La Rosa, Elena Deych, Berkley Shands, William D. Shannon}
-
 \examples{
 	data(saliva)
 	data(stool)

@@ -17,8 +17,6 @@
 
 \value{A boolean vector that indicates the validity of every tree tested.}
 
-\author{Berkley Shands, Patricio S. La Rosa, Elena Deych, William D. Shannon}
-
 \examples{
 	data(saliva) 
 	

@@ -18,8 +18,6 @@
 
 \value{A blank plot that contains a legend.}
 
-\author{Berkley Shands, Patricio S. La Rosa, Elena Deych, William D. Shannon}
-
 \examples{
 	displayLegend(c("red", "orange", "blue"), c(.1, 100, 10000))
 }

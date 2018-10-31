@@ -22,8 +22,6 @@
 
 \value{A MDS plot of the data.}
 
-\author{Berkley Shands, Patricio S. La Rosa, Elena Deych, William D. Shannon}
-
 \examples{
 	data(saliva)
 	data(stool)

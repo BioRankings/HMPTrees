@@ -17,8 +17,6 @@
 
 \value{A new data set that is trimmed and standardized based on the specified parameters. The new data is also reordered alphabetically according to row labels.}
 
-\author{Patricio S. La Rosa, Elena Deych, Berkley Shands, William D. Shannon}
-
 \examples{
 	data(saliva)
 	

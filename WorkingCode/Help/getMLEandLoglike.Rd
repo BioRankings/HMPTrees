@@ -26,8 +26,6 @@
 
 \value{A list containing the MLE, log-likelihood, tau, the number of iterations it took to run, and some intermediate values}
 
-\author{Patricio S. La Rosa, Elena Deych, Berkley Shands, William D. Shannon}
-
 \examples{
 	data(saliva)
 	

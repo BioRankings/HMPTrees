@@ -13,13 +13,16 @@
 }
 
 \details{
-	For 'level' k, p, c, o, f, g, s and ss can be used in place of kingdom, phylum, class, order, family, genus, 
-	species and subspecies respectively.
+	Notes: 
+	\enumerate{
+		\item For 'level' k, p, c, o, f, g, s, ss, v, and fm can be used in place of kingdom, phylum, 
+			class, order, family, genus, species, subspecies, variety, and form respectively.
+		\item Numbers greater than 0 can also be used for 'level', with 1 being equivalent to kingdom 
+			and no maximum limit.
+	}
 }
 
 \value{A list of 'phylo' objects that can be passed to plotTree to plot them.}
-
-\author{Berkley Shands, Patricio S. La Rosa, Elena Deych, William D. Shannon}
 
 \examples{
 	data(saliva)

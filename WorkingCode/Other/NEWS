@@ -1,3 +1,15 @@
+CHANGES IN HMPTrees VERSION 1.6
+
+CHANGES
+
+* Changed getMLE to be slightly faster
+
+* Rewrote trimToTaxaLevel to handle duplicate names and be more intuitive in its use
+
+* Changed functions to handle up to 10 levels of taxa depth
+
+
+
 CHANGES IN HMPTrees VERSION 1.5
 
 CHANGES
@@ -17,6 +29,10 @@ CHANGES
 * Stopped using 'samples' in several functions to select which trees to use.  Just pass in only the trees to use.
 
 * Simplified plotTreeDataMDS's arguments some
+
+* Rewrote trimToTaxaLevel to work better and fix duplicated taxa level names
+
+* Changed code to allow for levels below subspecies
 
 
 

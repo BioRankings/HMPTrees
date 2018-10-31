@@ -15,8 +15,6 @@
 
 \value{A data frame containing the generated tree(s).}
 
-\author{Patricio S. La Rosa, Elena Deych, Berkley Shands, William D. Shannon}
-
 \examples{
 	data(saliva)
 	

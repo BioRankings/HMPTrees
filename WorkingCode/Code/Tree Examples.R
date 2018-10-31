@@ -52,7 +52,7 @@ trimToTaxaLevel.Test <- function(){
 	data(saliva)
 	
 	### Trims saliva to only have the class level
-	salivaClass <- trimToTaxaLevel(saliva, "class", TRUE)
+	salivaClass <- trimToTaxaLevel(saliva, "class")
 }
 
 formatData.Test <- function(){

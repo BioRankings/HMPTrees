@@ -12,19 +12,9 @@ library(doParallel)		# parallelizing pvalue calc
 ### ~~~~~~~~~~~~~~~~~~~~~
 ### pvalue functions
 ### ~~~~~~~~~~~~~~~~~~~~~
-compareTwoDataSets <- function(data1, data2, numPerms=1000, parallel=FALSE, cores=3, maxSteps=50, delta=10^(-6), numBootStraps=NULL, enableMC=NULL){
+compareTwoDataSets <- function(data1, data2, numPerms=1000, parallel=FALSE, cores=3, maxSteps=50, delta=10^(-6)){
 	if(missing(data1) || missing(data2))
 		stop("Two valid data sets are required.")
-	
-	### Fix any old arguments
-	if(!is.null(numBootStraps)){
-		warning("'numBootStraps' is deprecated. It has been replaced with numPerms. View the help files for details.")
-		numPerms <- numBootStraps
-	}
-	if(!is.null(enableMC)){
-		warning("'enableMC' is deprecated. It has been replaced with parallel. View the help files for details.")
-		parallel <- enableMC
-	}
 	
 	if(numPerms <= 0)
 		stop("The number of boostraps must be an integer greater than 0.")
@@ -96,16 +86,10 @@ compareTwoDataSets <- function(data1, data2, numPerms=1000, parallel=FALSE, core
 	return(pValue)
 }
 
-getMLEandLoglike <- function(data, maxSteps=50, weightCols=NULL, delta=10^(-6), weight=NULL){
+getMLEandLoglike <- function(data, maxSteps=50, weightCols=NULL, delta=10^(-6)){
 	if(missing(data))
 		stop("A valid data set is required.")
-	
-	### Fix for anyone using the old weighting argument
-	if(!is.null(weight)){
-		warning("'weight' is deprecated. It has been replaced with weightCols. View the help files for details.")
-		weightCols <- weight
-	}
-	
+		
 	numSubs <- ncol(data)
 	numEdges <- nrow(data)
 	
@@ -255,10 +239,6 @@ trimToTaxaLevel <- function(data, level="genus", trimNodes="all", trimNames=TRUE
 	if(missing(data))
 		stop("A valid data set is required.")
 	
-	# Check for old function use
-	if(is.logical(trimNodes) || exists(eliminateParentNodes) || exists(trimBelow))
-		stop("trimToTaxaLevel has changed please see ?trimToTaxaLevel for details.")
-	
 	# Get depth
 	maxLevel <- getTaxaDepth(level)
 	
@@ -349,13 +329,7 @@ formatData <- function(data, countThreshold=1000, normalizeThreshold=10000){
 	return(data)
 }
 
-mergeDataSets <- function(dataList, calcMLE=FALSE, uniqueNames=FALSE, data=NULL){
-	### Fix any old arguments
-	if(!is.null(data)){
-		warning("'data' is deprecated. It has been replaced with dataList. View the help files for details.")
-		dataList <- data
-	}
-	
+mergeDataSets <- function(dataList, calcMLE=FALSE, uniqueNames=FALSE){
 	if(missing(dataList))
 		stop("dataList is missing.")
 	
@@ -402,13 +376,7 @@ mergeDataSets <- function(dataList, calcMLE=FALSE, uniqueNames=FALSE, data=NULL)
 ### ~~~~~~~~~~~~~~~~~~~~~
 ### plotting functions
 ### ~~~~~~~~~~~~~~~~~~~~~
-plotTree <- function(treeList, colors=NULL, divisions=NULL, main=NULL, sub="", showTipLabel=TRUE, showNodeLabel=FALSE, displayLegend=TRUE, trees=NULL){
-	### Fix any old arguments
-	if(!is.null(trees)){
-		warning("'trees' is deprecated. It has been replaced with treeList. View the help files for details.")
-		treeList <- trees
-	}
-	
+plotTree <- function(treeList, colors=NULL, divisions=NULL, main=NULL, sub="", showTipLabel=TRUE, showNodeLabel=FALSE, displayLegend=TRUE){	
 	if(missing(treeList))
 		stop("At least one valid tree of type 'phylo' is required inside a list.")
 	
@@ -439,13 +407,7 @@ plotTree <- function(treeList, colors=NULL, divisions=NULL, main=NULL, sub="", s
 }
 
 plotTreeDataMDS <- function(dataList, main="Tree MDS Comparisons", calcMLE=TRUE, mleTitles=NULL, dotColors=NULL, 
-		dotSizes=NULL, showNames=FALSE, returnCoords=FALSE, data=NULL){
-	### Fix any old arguments
-	if(!is.null(data)){
-		warning("'data' is deprecated. It has been replaced with dataList. View the help files for details.")
-		dataList <- data
-	}
-	
+		dotSizes=NULL, showNames=FALSE, returnCoords=FALSE){
 	if(missing(dataList))
 		stop("At least 1 valid data set is required.")
 	
@@ -533,27 +495,21 @@ createAndPlot <- function(data, samples=NULL, level="genus", colors=NULL, divisi
 }
 
 displayLegend <- function(colors=NULL, divisions=NULL, title="Confidence Value"){
-	### Default tree branch splits
-	if(is.null(divisions)) 
-		divisions <- c(0, .1, 1, 10, 100, 1000, 10000)
-	divisions <- sort(divisions)
-	
-	### Default tree branch colors
-	if(is.null(colors)) 
-		colors <- c("red", "orange", "yellow", "green" , "cyan", "blue")
-	
-	if(length(divisions) > (length(colors)+1)) # need more colors, dont care if more colors than divisons
-		colors <- c(colors, rep(colors[length(colors)], (length(divisions) - length(colors)-1)))
+	### Get colors and divisions to use
+	csi <- getColorSizeInfo(colors, divisions)
+	colors <- csi$col
+	divisions <- csi$div
 	
 	### Get the legend wording
-	lgd <- NULL
-	for(num in length(divisions):2)
-		lgd <- c(lgd, paste(divisions[num], "-", divisions[num-1], sep=""))
+	lgd <- rep(NA, length(divisions))
+	for(i in length(divisions):2)
+		lgd[i] <- paste(divisions[i], "-", divisions[i-1], sep="")
+	lgd[1] <- paste(divisions[1], "-0", sep="")
 	
 	### Plot the legend on a new page
 	grDevices::palette(colors)
 	plot(0, 0, type="n", xlab="", ylab="", xaxt="n", yaxt="n", bty="n")
-	legend(-.75, .75, legend=lgd, col=rev(palette()), pch=19, title=title)
+	legend(-.75, .75, legend=rev(lgd), col=rev(colors), pch=19, title=title)
 }
 
 
@@ -565,14 +521,15 @@ createTrees <- function(data, samples=NULL, level="genus", split="."){
 	if(missing(data))
 		stop("A valid data set is required.")
 	
-	if(any(grepl(")", rownames(data), fixed=TRUE)) || any(grepl("(", rownames(data), fixed=TRUE)) || any(grepl(":", rownames(data), fixed=TRUE)))
-		stop("Using parentheses and/or colons in the taxa names is not allowed.")
+	if(any(grepl(")", rownames(data), fixed=TRUE)) || any(grepl("(", rownames(data), fixed=TRUE)) || 
+			any(grepl(":", rownames(data), fixed=TRUE)) || any(grepl(",", rownames(data), fixed=TRUE)))
+		stop("Using parentheses, commas, and/or colons in the taxa names is not allowed.")
 	
 	### Sort the data based on taxa names
 	data <- data[order(rownames(data)),, drop=FALSE]
 	
 	### Create a newick format for each tree
-	allTrees <- vector("list", length(samples))
+	allTrees <- vector("list", ncol(data))
 	for(i in 1:ncol(data)){
 		oneSamp <- data[,i, drop=FALSE]
 		if(sum(oneSamp) <= 0) # skips entries without data
@@ -607,16 +564,22 @@ checkTreeValidity <- function(data, samples=NULL, epsilon=0.0001, split="."){
 	return(overAllValid)
 }
 
-generateTree <- function(data, numReadsPerSamp, theta=NULL, level="genus", split="."){
+generateTree <- function(data, numReadsPerSamp, numSamps, est="mom", level="genus", split=".", theta=NULL){
 	if(missing(data) || missing(numReadsPerSamp))
 		stop("data and/or numReadsPerSamp missing.")
 	
 	### Take a full tree and pull out a single level
-	tempdata <- trimToTaxaLevel(data, level, FALSE, split=split)
+	tempdata <- trimToTaxaLevel(data, level, "all", FALSE, split)
 	tempdata <- transformHMPTreetoHMP(tempdata, TRUE)
 	
 	### Get our starting shape
-	dirfit <- dirmult::dirmult(tempdata)
+	if(tolower(est) == "mle"){
+		dirfit <- dirmult::dirmult(tempdata)
+	}else if(tolower(est) == "mom"){
+		dirfit <- HMP::DM.MoM(tempdata)
+	}else{
+		stop("'est' must be either mom or mle.")
+	}
 	if(is.null(theta)){
 		dirgamma <- dirfit$gamma
 	}else{
@@ -624,7 +587,7 @@ generateTree <- function(data, numReadsPerSamp, theta=NULL, level="genus", split
 	}
 	
 	### Generate the data using HMP
-	gendata <- HMP::Dirichlet.multinomial(numReadsPerSamp, dirgamma)
+	gendata <- HMP::Dirichlet.multinomial(rep(numReadsPerSamp, numSamps), dirgamma)
 	colnames(gendata) <- colnames(tempdata)
 	
 	### Rotate back into HMPTree format
@@ -688,17 +651,12 @@ traverseTreeHelp <- function(data, place, treeLvl, maxTaxaDepth, split){
 		}else{
 			retStr <- paste("(", childStr, ")", myName, ":", myVal,  sep="")
 		}
-		
-		if(noSiblings) # adds an extra 0 value branch if there are no siblings
-			retStr <- paste(retStr, ",:0.0", sep="")
 	}else{ # no children found
 		if(myVal == 0 && REMOVELBL == TRUE){
 			retStr <- paste(":", myVal, sep="")
 		}else{
 			retStr <- paste(myName, ":", myVal, sep="")
 		}
-		
-		retStr <- paste(retStr, ",:0.0", sep="")
 	}
 	
 	return(retStr)
@@ -767,7 +725,6 @@ traverseTree <- function(data, level, split){
 	
 	### Turn the newick format into a 'phylo' tree
 	retTree <- ape::read.tree(text=myTree) 
-	retTree <- ape::collapse.singles(retTree)
 	
 	return(retTree)
 }
@@ -810,44 +767,50 @@ buildTree <- function(data, split="."){
 ### get info functions
 ### ~~~~~~~~~~~~~~~~~~~~~
 getBranchSizes <- function(edgeLength, colors, divisions){
-	edgeColor <- NULL
-	edgeWidth <- NULL
+	numEdges <- length(edgeLength)
+	
+	edgeColor <- rep("white", numEdges)
+	edgeWidth <- rep(0, numEdges)
 	
 	### Catch an all 0 tree
-	if(max(edgeLength) == 0){ 
-		retData <- list(edgecol=rep(0, length(edgeLength)), edgewid=rep(0, length(edgeLength)))
-		return(retData)
-	}
+	if(max(edgeLength) == 0)
+		return(list(edgecol=edgeColor, edgewid=edgeWidth))
 	
-	if(is.null(divisions))
-		divisions <- c(.1, 1, 10, 100, 1000, 10000)
-	divisions <- sort(divisions)
+	### Get colors and divisions to use
+	csi <- getColorSizeInfo(colors, divisions)
+	colors <- csi$col
+	divisions <- csi$div
 	
-	if(is.null(colors))
-		colors <- c("red", "orange", "yellow", "green" , "cyan", "blue")
-	
-	### Check if we need more colors and add them
-	if(length(divisions) > (length(colors)+1)) 
-		colors <- c(colors, rep(colors[length(colors)], (length(divisions) - length(colors)-1)))
-	palette(colors)
-	
-	for(i in 1:length(edgeLength)){ 	
-		if(edgeLength[i] == 0){ #0 value so make it white
-			edgeColor <- c(edgeColor, 0)
-			edgeWidth <- c(edgeWidth, 0)
-		}else{
-			for(j in 1:length(divisions)){
-				if(edgeLength[i] <= divisions[j]){
-					edgeColor <- c(edgeColor, j)
-					edgeWidth <- c(edgeWidth, floor(4*(j+1)/length(divisions)) )
-					break
-				}
-			}
+	### Get color and size for current tree
+	for(i in 1:numEdges){ 	
+		if(edgeLength[i] != 0){
+			divLoc <- min(which(edgeLength[i] <= divisions))
+			
+			edgeColor[i] <- colors[divLoc]
+			edgeWidth[i] <- floor(4*(divLoc+1)/length(divisions))
 		}
 	}
 	
 	retData <- list(edgecol=edgeColor, edgewid=edgeWidth)
 	return(retData)
+}
+
+getColorSizeInfo <- function(colors, divisions){
+	if(is.null(divisions))
+		divisions <- c(.1, 1, 10, 100, 1000, 10000, Inf)
+	divisions <- sort(divisions)
+	
+	if(is.null(colors))
+		colors <- c("red", "orange", "yellow", "green" , "cyan", "blue", "black")
+	
+	numCols <- length(colors)
+	numDivs <- length(divisions)
+	
+	### Check if we need more colors and add them
+	if(numDivs > (numCols+1)) 
+		colors <- rainbow(numDivs)
+	
+	return(list(col=colors, div=divisions))
 }
 
 getTaxaDepth <- function(level){
@@ -886,7 +849,7 @@ getTaxaDepth <- function(level){
 
 
 ### ~~~~~~~~~~~~~~~~~~~~~
-### out data only functions
+### hidden data functions
 ### ~~~~~~~~~~~~~~~~~~~~~
 removeUnclass <- function(data, remove=TRUE){
 	falsePos <- grep(".U", rownames(data), fixed=TRUE)
@@ -932,13 +895,15 @@ transformHMPTreetoHMP <- function(data, elimZero=FALSE, zeroValue=.00001){
 	
 	### Find 0 taxa
 	dataSum <- rowSums(data)
-	zeroRows <- which(dataSum==0)
+	zeroRows <- which(dataSum == 0)
 	
-	### Increase the first sample by zero value so taxa aren't all 0
-	data[zeroRows, 1] <- zeroValue
-	
-	if(elimZero)
-		data <- data[-zeroRows,]
+	if(length(zeroRows) != 0){
+		### Increase the first sample by zero value so taxa aren't all 0
+		data[zeroRows, 1] <- zeroValue
+		
+		if(elimZero)
+			data <- data[-zeroRows,]
+	}
 	
 	return(t(data))
 }

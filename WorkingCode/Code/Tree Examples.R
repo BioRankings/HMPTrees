@@ -6,6 +6,7 @@ saliva <- read.csv("saliva.csv", row.names=1)
 stool <- read.csv("stool.csv", row.names=1)
 throat <- read.csv("throat.csv", row.names=1)
 
+
 ### ~~~~~~~~~~~~~~~~~~~~~
 ### pvalue functions
 ### ~~~~~~~~~~~~~~~~~~~~~

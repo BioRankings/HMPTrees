@@ -6,7 +6,11 @@ CHANGES
 
 * Rewrote trimToTaxaLevel to handle duplicate names and be more intuitive in its use
 
-* Changed functions to handle up to 10 levels of taxa depth
+* Changed functions to handle up to 10 levels of taxa depth that are named
+
+* Removed old code to fix new bugs with create and plot trees
+
+* Changed branch plotting function to work correctly and added better functionality
 
 
 
